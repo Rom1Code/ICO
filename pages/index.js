@@ -278,6 +278,18 @@ export default function Home() {
       */
   const connectWallet = async () => {
     try {
+      // Assign the Web3Modal class to the reference object by setting it's `current` value
+      // The `current` value is persisted throughout as long as this page is open
+      web3ModalRef.current = new Web3Modal({
+        network: "ropsten",
+        providerOptions: {},
+        disableInjectedProvider: false,
+      });
+      getTotalTokensMinted();
+      getBalanceOfCryptoDevTokens();
+      getTokensToBeClaimed();
+      //withdrawCoins();
+
       // Get the provider from web3Modal, which in our case is MetaMask
       // When used for the first time, it prompts the user to connect their wallet
       await getProviderOrSigner();
@@ -288,32 +300,23 @@ export default function Home() {
     }
   };
 
+  const disconnectWallet = () => {
+
+    web3ModalRef.current = new Web3Modal({
+      clearCachedProvider: true
+    });
+    setWalletConnected(false);
+
+  }
   // useEffects are used to react to changes in state of the website
   // The array at the end of function call represents what state changes will trigger this effect
   // In this case, whenever the value of `walletConnected` changes - this effect will be called
-  useEffect(() => {
-    // if wallet is not connected, create a new instance of Web3Modal and connect the MetaMask wallet
-    if (!walletConnected) {
-      // Assign the Web3Modal class to the reference object by setting it's `current` value
-      // The `current` value is persisted throughout as long as this page is open
-      web3ModalRef.current = new Web3Modal({
-        network: "ropsten",
-        providerOptions: {},
-        disableInjectedProvider: false,
-      });
-      connectWallet();
-      getTotalTokensMinted();
-      getBalanceOfCryptoDevTokens();
-      getTokensToBeClaimed();
-      //withdrawCoins();
-    }
-  }, [walletConnected]);
 
   /*
         renderButton: Returns a button based on the state of the dapp
       */
   const renderButton = () => {
-    console.log(walletConnected, isOwner)
+    //console.log(walletConnected, isOwner)
     // If we are currently waiting for something, return a loading button
     if (loading) {
       return (
@@ -387,6 +390,7 @@ export default function Home() {
         >
           Mint Tokens
         </button>
+
       </div>
     );
   };
@@ -416,7 +420,18 @@ export default function Home() {
                 Overall {utils.formatEther(tokensMinted)}/10000 have been minted!!!
               </div>
               {renderButton()}
+              <button
+                className={styles.button}
+                //disabled={!(tokenAmount > 0)}
+                onClick={() => disconnectWallet()}
+              >
+                Disconnect
+              </button>
+
             </div>
+
+
+
           ) : (
             <button onClick={connectWallet} className={styles.button}>
               Connect your wallet
